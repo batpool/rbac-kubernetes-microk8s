@@ -1,0 +1,45 @@
+alias kubectl='microk8s.kubectl'
+
+mkdir cert && cd cert
+
+# generate .key
+openssl genrsa -out b4tman.key 2048
+
+# generate .csr
+openssl req -new -key b4tman.key -out b4tman.csr -subj "/CN=b4tman/O=group1"
+
+
+# generate .crt
+openssl x509 -req -in b4tman.csr -CA /var/snap/microk8s/current/certs/ca.crt -CAkey /var/snap/microk8s/current/certs/ca.key -CAcreateserial -out b4tman.crt -days 500
+
+kubectl config set-credentials b4tman --client-certificate=b4tman.crt --client-key=b4tman.key
+
+kubectl config set-context b4tman-context --cluster=microk8s --namespace=default --user=b4tman
+
+kubectl config view
+
+kubectl config use-context b4tman-context
+
+kubectl config current-context
+
+kubectl create namespace ns-test-satya # Forbidden
+
+kubectl get pods # Forbidden
+
+# Role & RoleBinding
+
+kubectl config use-context microk8s
+
+kubectl apply -f role.yaml
+
+kubectl apply -f role-binding.yaml
+
+kubectl get roles
+
+kubectl get rolebindings
+
+kubectl config use-context b4tman-context
+
+kubectl create namespace ns-test
+
+kubectl get pods
